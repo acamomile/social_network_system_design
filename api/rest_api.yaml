@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Social Network API
+  description: Social Network API
+  version: 1.0.0
+servers:
+  - url: 'https'
+paths:
+  /api/v1/friends/{userId}:
+    post:
+      summary: Add user to friends
+      security:
+        - authToken: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: User not found
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+    delete:
+      summary: Delete user from friends
+      security:
+        - authToken: [ ]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: User not found
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/user/{userId}/friends:
+    get:
+      summary: Show user friends
+      security:
+        - authToken: [ ]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfile'
+              examples:
+                successfulResponse:
+                  value:
+                    - id: 16797f4c-1d4b-4164-934a-6c140ea51b90
+                      name: John
+                      lastname: Doe
+                      middlename: M.
+                      nickname: Johnny
+                      birthdate: 1990-01-01
+                    - id: 5a1c711c-3f17-4cca-9bd6-c9e8aa85f580
+                      name: Jane
+                      lastname: Doe
+                      middlename: A.
+                      nickname: Janie
+                      birthdate: 1992-03-15
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: User not found
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/user/{userId}:
+    get:
+      summary: Get user profile
+      security:
+        - authToken: [ ]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: User not found
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/post:
+    post:
+      summary: Create a new post in feed
+      security:
+        - authToken: [ ]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              example:
+                error: Validation failed
+                details:
+                  - field: "title"
+                    message: "Title must not be empty"
+                  - field: "body"
+                    message: "Body must not be empty"
+      requestBody:
+        description: New post details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPost'
+  /api/v1/post/{postId}/media:
+    post:
+      summary: Upload media for post
+      security:
+        - authToken: [ ]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              example:
+                error: Validation failed
+                details:
+                  - field: "media"
+                    message: "Title must not be empty"
+      requestBody:
+        description: Media content for post
+        required: true
+        content:
+          application/octet-stream:
+            example: [ binary data ]
+
+
+components:
+  securitySchemes:
+    authToken:
+      type: apiKey
+      in: cookie
+      name: JWT
+  schemas:
+    Success:
+      type: object
+      properties:
+        result:
+          type: boolean
+    UserProfile:
+     type: object
+     properties:
+      id:
+        type: string
+      name:
+        type: string
+      lastname:
+        type: string
+      middlename:
+        type: string
+      nickname:
+        type: string
+      birthdate:
+        type: string
+    NewPost:
+       type: object
+       properties:
+         title:
+           type: string
+         body:
+           type: string
+
+
+
+
+
