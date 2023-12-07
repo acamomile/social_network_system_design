@@ -6,48 +6,71 @@ info:
 servers:
   - url: 'https'
 paths:
-  /api/v1/friends/{userId}:
+  /v1/users/{userId}/friends/{friendId}:
     post:
+      tags:
+        - Friends
       summary: Add user to friends
-      security:
-        - authToken: []
       responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
+        '201':
+          description: Created
         '404':
           description: User not found
           content:
             application/json:
               example:
                 error: User not found
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              example:
+                error: Unprocessable entity
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
+
       parameters:
         - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: friendId
           in: path
           required: true
           schema:
             type: string
             format: uuid
     delete:
+      tags:
+        - Friends
       summary: Delete user from friends
-      security:
-        - authToken: [ ]
       responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
+        '204':
+          description: Deleted
         '404':
           description: User not found
           content:
             application/json:
               example:
                 error: User not found
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              example:
+                error: Unprocessable entity
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
       parameters:
         - name: userId
           in: path
@@ -55,41 +78,42 @@ paths:
           schema:
             type: string
             format: uuid
-  /api/v1/user/{userId}/friends:
+        - name: friendId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /v1/users/{userId}/friends:
     get:
-      summary: Show user friends
-      security:
-        - authToken: [ ]
+      tags:
+        - Friends
+      summary: Get user friends
       responses:
         '200':
-          description: Successful response
+          description: User friends
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserProfile'
-              examples:
-                successfulResponse:
-                  value:
-                    - id: 16797f4c-1d4b-4164-934a-6c140ea51b90
-                      name: John
-                      lastname: Doe
-                      middlename: M.
-                      nickname: Johnny
-                      birthdate: 1990-01-01
-                    - id: 5a1c711c-3f17-4cca-9bd6-c9e8aa85f580
-                      name: Jane
-                      lastname: Doe
-                      middlename: A.
-                      nickname: Janie
-                      birthdate: 1992-03-15
+                $ref: '#/components/schemas/GetFriendsResponse'
         '404':
           description: User not found
           content:
             application/json:
               example:
                 error: User not found
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              example:
+                error: Unprocessable entity
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
       parameters:
         - name: userId
           in: path
@@ -97,24 +121,46 @@ paths:
           schema:
             type: string
             format: uuid
-  /api/v1/user/{userId}:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+  /v1/users/{userId}:
     get:
+      tags:
+        - Profile
       summary: Get user profile
-      security:
-        - authToken: [ ]
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                  $ref: '#/components/schemas/UserProfile'
+                $ref: '#/components/schemas/UserProfileResponse'
         '404':
           description: User not found
           content:
             application/json:
               example:
                 error: User not found
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              example:
+                error: Unprocessable entity
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
       parameters:
         - name: userId
           in: path
@@ -122,18 +168,55 @@ paths:
           schema:
             type: string
             format: uuid
-  /api/v1/post:
-    post:
-      summary: Create a new post in feed
-      security:
-        - authToken: [ ]
+  /v1/posts:
+    get:
+      tags:
+        - Posts
+      summary: Get posts feed
       responses:
         '200':
-          description: Successful response
+          description: User posts
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Success'
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              example:
+                error: Unauthorized
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: User not found
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              example:
+                error: Unprocessable entity
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
+    post:
+      tags:
+        - Posts
+      summary: Create a new post
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              example:
+                error: Unauthorized
         '422':
           description: Unprocessable Entity
           content:
@@ -145,25 +228,46 @@ paths:
                     message: "Title must not be empty"
                   - field: "body"
                     message: "Body must not be empty"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
       requestBody:
         description: New post details
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewPost'
-  /api/v1/post/{postId}/media:
+              $ref: '#/components/schemas/NewPostRequest'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /v1/posts/{postId}/media:
     post:
-      summary: Upload media for post
-      security:
-        - authToken: [ ]
+      tags:
+        - Posts
+      summary: Upload post media files
       responses:
-        '200':
-          description: Successful response
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
+              example:
+                error: Unauthorized
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              example:
+                error: Post not found
         '422':
           description: Unprocessable Entity
           content:
@@ -172,49 +276,313 @@ paths:
                 error: Validation failed
                 details:
                   - field: "media"
-                    message: "Title must not be empty"
+                    message: "Media files list can't be empty"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
       requestBody:
-        description: Media content for post
+        description: Media files for post
         required: true
         content:
           application/octet-stream:
-            example: [ binary data ]
+            schema:
+              $ref: '#/components/schemas/MediaListRequest'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+  /v1/chats:
+    get:
+      tags:
+        - Chats
+      summary: Get user chats
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatsResponse"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: User not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
+    parameters:
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
 
 
+  /v1/chats/{chatId}:
+    get:
+      tags:
+        - Chats
+      summary: Get chat messages
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChatMessage"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        '404':
+          description: Chat not found
+          content:
+            application/json:
+              example:
+                error: Chat not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+    post:
+      tags:
+        - Chats
+      summary: Send mesage to chat
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              example:
+                error: Unauthorized
+        '404':
+          description: Chat not found
+          content:
+            application/json:
+              example:
+                error: Chat not found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              example:
+                error: Validation failed
+                details:
+                  - field: "text"
+                    message: "Message text must not be empty"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              example:
+                error: Internal server error
+
+      requestBody:
+        description: New chat message
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewChatMessageRequest'
+              
 components:
-  securitySchemes:
-    authToken:
-      type: apiKey
-      in: cookie
-      name: JWT
   schemas:
-    Success:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    SuccessResult:
       type: object
       properties:
         result:
           type: boolean
-    UserProfile:
-     type: object
-     properties:
-      id:
-        type: string
-      name:
-        type: string
-      lastname:
-        type: string
-      middlename:
-        type: string
-      nickname:
-        type: string
-      birthdate:
-        type: string
-    NewPost:
-       type: object
-       properties:
-         title:
-           type: string
-         body:
-           type: string
+    Friend:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        lastname:
+          type: string
+        middlename:
+          type: string
+        nickname:
+          type: string
+        birthdate:
+          type: string
+        avatar_url:
+          type: string
+    Meta:
+      type: object
+      properties:
+        pagination:
+          type: object
+          properties:
+            currentPage:
+              type: integer
+            pageSize:
+              type: integer
+            totalPages:
+              type: integer
+
+    GetFriendsResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Friend'
+        meta:
+          $ref: '#/components/schemas/Meta'
+
+    UserProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        lastname:
+          type: string
+        middlename:
+          type: string
+        nickname:
+          type: string
+        birthdate:
+          type: string
+        avatar_url:
+          type: string
+        interests:
+          type: array
+          items:
+            - type: string
+    MediaListRequest:
+      type: object
+      properties:
+        media:
+          type: array
+          items:
+            - type: string
+              format: binary
+              example: [ binary data ]
+
+    NewPostRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        body:
+          type: string
+        media:
+          type: array
+          items:
+            - type: string
+    ChatsResponse:
+      type: object
+      properties:
+        chats:
+          type: array
+          items:
+            $ref: "#/components/schemas/Chat"
+        meta:
+          $ref: "#/components/schemas/Meta"
+    Chat:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        members:
+          type: array
+          items:
+            - type: string
+        last_message:
+          $ref: "#/components/schemas/ChatMessage"
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        chat_id:
+          type: string
+          format: uuid
+    NewChatMessageRequest:
+      type: object
+      properties:
+        text:
+          type: string
+
+
+
+
+
+
+
 
 
 
