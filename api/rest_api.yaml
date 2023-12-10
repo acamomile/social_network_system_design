@@ -179,7 +179,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponse'
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Post"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
         '401':
           description: Unauthorized
           content:
@@ -248,11 +255,11 @@ paths:
           schema:
             type: string
             format: uuid
-  /v1/posts/{postId}/media:
+  /v1/media:
     post:
       tags:
-        - Posts
-      summary: Upload post media files
+        - Media
+      summary: Upload media files
       responses:
         '201':
           description: Created
@@ -263,11 +270,11 @@ paths:
               example:
                 error: Unauthorized
         '404':
-          description: Post not found
+          description: Entity not found
           content:
             application/json:
               example:
-                error: Post not found
+                error: Entity not found
         '422':
           description: Unprocessable Entity
           content:
@@ -290,13 +297,6 @@ paths:
           application/octet-stream:
             schema:
               $ref: '#/components/schemas/MediaListRequest'
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
 
   /v1/chats:
     get:
@@ -507,6 +507,15 @@ components:
     MediaListRequest:
       type: object
       properties:
+        entity_type:
+          type: string
+          enum:
+            - post
+            - chatMessage
+            - user
+        entity_id:
+          type: string
+          format: uuid
         media:
           type: array
           items:
@@ -571,20 +580,16 @@ components:
         chat_id:
           type: string
           format: uuid
+        read_by:
+          type: array
+          items:
+            - type: string
+              format: uuid
     NewChatMessageRequest:
       type: object
       properties:
         text:
           type: string
-
-
-
-
-
-
-
-
-
-
-
-
+        user_id:
+          type: string
+          format: uuid
